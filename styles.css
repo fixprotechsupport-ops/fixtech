@@ -3843,3 +3843,87 @@ footer{background:#fff!important;box-shadow:0 -1px 7px rgba(17,27,49,.025)}
 .panic-rich-public td,.panic-rich-public th{border:1px solid #d8e0ea;padding:7px}
 .panic-rich-public hr{border:0;border-top:1px solid #dfe6ee;margin:14px 0}
 .panic-rich-public .panic-editor-insert-box{border:1px solid #d8e0ea;background:#f8fafc;border-radius:8px;padding:12px;margin:8px 0}
+/* FixTech v6.29 â€” Q&A solid answer buttons
+   UI only: preserve layout, dimensions, Q&A logic, and answer order. */
+.page-qa .qa-answer-list .qa-answer,
+.page-qa .qa-truefalse-list .qa-answer{
+  border-color:#a9c5e8!important;
+  background:#f4f8fd!important;
+  color:#1d2d44!important;
+  box-shadow:0 1px 2px rgba(20,55,95,.06)!important;
+}
+.page-qa .qa-answer-list .qa-answer:hover,
+.page-qa .qa-truefalse-list .qa-answer:hover{
+  border-color:#6f9fd8!important;
+  background:#edf5ff!important;
+}
+.page-qa .qa-answer-list .qa-answer .answer-letter,
+.page-qa .qa-truefalse-list .qa-answer .answer-letter{
+  border-color:#1769c2!important;
+  background:#1769c2!important;
+  color:#fff!important;
+  font-weight:800!important;
+}
+.page-qa .qa-answer-list .qa-answer.selected,
+.page-qa .qa-truefalse-list .qa-answer.selected{
+  border-color:#1769c2!important;
+  background:#e8f2ff!important;
+  box-shadow:0 0 0 1px rgba(23,105,194,.12)!important;
+}
+.page-qa .qa-answer-list .qa-answer.selected .answer-letter,
+.page-qa .qa-truefalse-list .qa-answer.selected .answer-letter{
+  border-color:#0f56a4!important;
+  background:#0f56a4!important;
+  color:#fff!important;
+}
+.page-qa .qa-answer-list .qa-answer.correct,
+.page-qa .qa-truefalse-list .qa-answer.correct{
+  border-color:#58a97e!important;
+  background:#eef9f3!important;
+}
+.page-qa .qa-answer-list .qa-answer.correct .answer-letter,
+.page-qa .qa-truefalse-list .qa-answer.correct .answer-letter{
+  border-color:#238056!important;
+  background:#238056!important;
+  color:#fff!important;
+}
+.page-qa .qa-answer-list .qa-answer.incorrect,
+.page-qa .qa-truefalse-list .qa-answer.incorrect{
+  border-color:#d68a83!important;
+  background:#fff3f2!important;
+}
+.page-qa .qa-answer-list .qa-answer.incorrect .answer-letter,
+.page-qa .qa-truefalse-list .qa-answer.incorrect .answer-letter{
+  border-color:#b9443b!important;
+  background:#b9443b!important;
+  color:#fff!important;
+}
+/* FixTech v6.31 - Q&A solid answer buttons START */
+/* Only the T/F/A/B/C/D badges are changed. Q&A layout and logic stay unchanged. */
+.page-qa .qa-answer .answer-letter{
+  background:#1769e0!important;
+  border-color:#1769e0!important;
+  color:#fff!important;
+  box-shadow:none!important;
+}
+.page-qa .qa-answer:hover .answer-letter{
+  background:#0f5bc8!important;
+  border-color:#0f5bc8!important;
+  color:#fff!important;
+}
+.page-qa .qa-answer.selected .answer-letter{
+  background:#0b55bd!important;
+  border-color:#0b55bd!important;
+  color:#fff!important;
+}
+.page-qa .qa-answer.correct .answer-letter{
+  background:#198754!important;
+  border-color:#198754!important;
+  color:#fff!important;
+}
+.page-qa .qa-answer.incorrect .answer-letter{
+  background:#c93c37!important;
+  border-color:#c93c37!important;
+  color:#fff!important;
+}
+/* FixTech v6.31 - Q&A solid answer buttons END */
