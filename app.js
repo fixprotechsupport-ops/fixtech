@@ -271,8 +271,27 @@
     state.qaSessionIds=[];state.qaResponses={};state.qaFinished=false;state.qaIndex=0;state.qaSelected=null;state.qaMultiSelected=[];state.qaMultiRevealed=false;
   }
   const app=document.getElementById('app'),nav=document.getElementById('mainNav'),footerNav=document.getElementById('footerNav');
-  const route=()=>location.hash.replace('#/','')||'home';
-  const go=id=>location.hash='#/'+id;
+  const PUBLIC_ROUTE_SLUGS={home:'',panic:'panic-log',knowledge:'general-knowledge',qa:'q-and-a',pos:'fixpro-pos',about:'about',contact:'contact'};
+  const PUBLIC_SLUG_ROUTES=Object.fromEntries(Object.entries(PUBLIC_ROUTE_SLUGS).filter(([,slug])=>slug).map(([id,slug])=>[slug,id]));
+  const publicBasePath=()=>{
+    try{const p=new URL('.',document.baseURI).pathname;return p.endsWith('/')?p:p+'/'}catch{return '/'}
+  };
+  const routeFromPath=()=>{
+    let p=decodeURIComponent(location.pathname||'/');
+    const base=publicBasePath();
+    if(p.startsWith(base))p=p.slice(base.length);
+    p=p.replace(/^\/+|\/+$/g,'');
+    if(!p||p==='home')return 'home';
+    return PUBLIC_SLUG_ROUTES[p]||'home';
+  };
+  const route=()=>IS_LOCAL_PREVIEW?(location.hash.replace('#/','')||'home'):routeFromPath();
+  const go=id=>{
+    if(IS_LOCAL_PREVIEW){location.hash='#/'+id;return}
+    const slug=PUBLIC_ROUTE_SLUGS[id]??'';
+    const target=publicBasePath()+(slug?slug+'/':'');
+    if(location.pathname!==target)history.pushState({fixtechRoute:id},'',target);
+    render();window.scrollTo({top:0,left:0,behavior:'auto'});
+  };
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const attr=s=>esc(s).replace(/`/g,'&#96;');
   function orderedQuestionChoices(q){
@@ -971,7 +990,8 @@ function getPanicSelection(){
     document.title=pageName;
   }
 function render(){clearInterval(heroSliderTimer);heroSliderTimer=null;applyTheme();renderBrand();renderNav();const r=route();updateDocumentTitle();if(r==='home')renderHome();else if(r==='panic')renderPanic();else if(r==='knowledge')renderKnowledge();else if(r==='qa')renderQA();else if(r==='pos')renderPos();else if(r==='about')renderAbout();else if(r==='contact')renderContact();else renderHome();bindRoutes();initHeroSlider();setTimeout(locateFromAdmin,80)}
-  window.addEventListener('hashchange',()=>{render();window.scrollTo({top:0,left:0,behavior:'auto'})});
+  if(IS_LOCAL_PREVIEW)window.addEventListener('hashchange',()=>{render();window.scrollTo({top:0,left:0,behavior:'auto'})});
+  else window.addEventListener('popstate',()=>{render();window.scrollTo({top:0,left:0,behavior:'auto'})});
   window.addEventListener('storage',e=>{if(CONTENT_KEYS.has(e.key)){syncFromStorage();render()}});
   window.addEventListener('focus',()=>{syncFromStorage();render()});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden){syncFromStorage();render()}});
