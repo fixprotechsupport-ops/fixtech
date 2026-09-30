@@ -50,7 +50,15 @@
   const PUBLISHED_KEYS={'fixtech.site':'site','fixtech.nav':'nav','fixtech.pages':'pages','fixtech.panicEntries':'panicEntries','fixtech.panicCatalog':'panicCatalog','fixtech.knowledgeTopics':'knowledgeTopics','fixtech.questions':'questions'};
   const load=(k,f)=>{
     const publishedKey=PUBLISHED_KEYS[k];
-    if(!IS_LOCAL_PREVIEW&&PUBLISHED_STATE&&publishedKey&&Object.prototype.hasOwnProperty.call(PUBLISHED_STATE,publishedKey))return deep(PUBLISHED_STATE[publishedKey]);
+    if(IS_LOCAL_PREVIEW){
+      try{
+        const raw=localStorage.getItem(k);
+        if(raw!==null)return JSON.parse(raw)??deep(f);
+      }catch{}
+      if(PUBLISHED_STATE&&publishedKey&&Object.prototype.hasOwnProperty.call(PUBLISHED_STATE,publishedKey))return deep(PUBLISHED_STATE[publishedKey]);
+      return deep(f);
+    }
+    if(PUBLISHED_STATE&&publishedKey&&Object.prototype.hasOwnProperty.call(PUBLISHED_STATE,publishedKey))return deep(PUBLISHED_STATE[publishedKey]);
     try{return JSON.parse(localStorage.getItem(k))??deep(f)}catch{return deep(f)}
   };
   const defaultZone=s=>s.zone||(s.type==='hero'||s.type==='pageHeading'?'top':s.type==='pos'?'bottom':'main');
@@ -461,7 +469,10 @@
 // FIXTECH_PANIC_CATALOG_PUBLIC_V595
   function panicCatalogPublic(){
     let raw=[];
-    if(!IS_LOCAL_PREVIEW&&PUBLISHED_STATE&&Array.isArray(PUBLISHED_STATE.panicCatalog))raw=deep(PUBLISHED_STATE.panicCatalog);
+    if(IS_LOCAL_PREVIEW){
+      try{const saved=localStorage.getItem('fixtech.panicCatalog');if(saved!==null)raw=JSON.parse(saved)||[]}catch{raw=[]}
+      if((!Array.isArray(raw)||!raw.length)&&PUBLISHED_STATE&&Array.isArray(PUBLISHED_STATE.panicCatalog))raw=deep(PUBLISHED_STATE.panicCatalog);
+    }else if(PUBLISHED_STATE&&Array.isArray(PUBLISHED_STATE.panicCatalog))raw=deep(PUBLISHED_STATE.panicCatalog);
     else try{raw=JSON.parse(localStorage.getItem('fixtech.panicCatalog')||'[]')}catch{raw=[]}
 
     const out=[];
