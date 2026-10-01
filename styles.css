@@ -3927,3 +3927,19 @@ footer{background:#fff!important;box-shadow:0 -1px 7px rgba(17,27,49,.025)}
   color:#fff!important;
 }
 /* FixTech v6.31 - Q&A solid answer buttons END */
+
+
+/* FIXTECH_V633_PUBLIC_BLACK_INK
+   General Knowledge defaults + solid black body/description text.
+   Any font-size saved from Admin still overrides these defaults. */
+.page-knowledge .page-heading h1{font-size:36px}
+.page-knowledge [data-ft-child="topicTitle"]{font-size:24px}
+.page .page-heading p,
+.page .section-title-row p,
+.page .editable-section p,
+.page .editable-section li,
+.page .knowledge-topic-heading p,
+.page .knowledge-columns p,
+.page .knowledge-summary,
+.page .knowledge-section-copy p,
+.page .lead{color:#000!important}
