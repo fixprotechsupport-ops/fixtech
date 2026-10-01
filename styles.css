@@ -4730,3 +4730,21 @@ main li,
 }
 /* END FIXTECH_V656_HEADER_INNER_ALIGNMENT */
 
+/* FIXTECH_V657_HEADER_EDGE_MOVE
+   Move ONLY the desktop logo/search inward by the same page inner padding.
+   Navigation and public page width stay unchanged. */
+@media (min-width:1001px){
+  .topbar{
+    padding-inline:max(var(--page-x),calc((100vw - var(--content-width))/2))!important;
+  }
+  .topbar > .brand{
+    position:relative!important;
+    left:var(--page-x)!important;
+  }
+  .topbar > .site-search{
+    position:relative!important;
+    right:var(--page-x)!important;
+  }
+}
+/* END FIXTECH_V657_HEADER_EDGE_MOVE */
+
