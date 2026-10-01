@@ -3943,3 +3943,24 @@ footer{background:#fff!important;box-shadow:0 -1px 7px rgba(17,27,49,.025)}
 .page .knowledge-summary,
 .page .knowledge-section-copy p,
 .page .lead{color:#000!important}
+
+/* FIXTECH_V634_SOLID_BLACK_PARAGRAPHS
+   Public content text: use solid black ink.
+   This intentionally leaves links, buttons, active navigation and status colors unchanged. */
+.page p,
+.page li,
+main p,
+main li,
+.page .lead,
+.page .knowledge-summary,
+.page .knowledge-topic-heading p,
+.page .knowledge-section-copy,
+.page .knowledge-section-copy p,
+.page .section-title-row p,
+.page .page-heading p,
+.page .editable-section p,
+.page .editable-section li {
+  color: #000 !important;
+  opacity: 1 !important;
+}
+
