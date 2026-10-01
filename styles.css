@@ -4716,3 +4716,17 @@ main li,
   }
 }
 /* END FIXTECH v6.50 — mobile responsive dynamic content + table borders */
+
+/* FIXTECH_V656_HEADER_INNER_ALIGNMENT
+   Align the desktop logo/search edges with the INNER content edge of .page.
+   The public page width itself is unchanged. Q&A and mobile layout are unchanged. */
+@media (min-width:1001px){
+  .topbar{
+    padding-inline:max(
+      var(--page-x),
+      calc((100vw - var(--content-width))/2 + var(--page-x))
+    )!important;
+  }
+}
+/* END FIXTECH_V656_HEADER_INNER_ALIGNMENT */
+
