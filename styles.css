@@ -4716,3 +4716,21 @@ main li,
   }
 }
 /* END FIXTECH v6.50 — mobile responsive dynamic content + table borders */
+
+/* FIXTECH_V651_WIDE_PUBLIC_PAGES
+   Expand all public pages on desktop except Q&A.
+   Q&A intentionally keeps its existing width. */
+@media (min-width:1001px){
+  .page:not(.page-qa){
+    width:calc(100% - 136px);
+    max-width:none;
+  }
+
+  /* About and Contact had an additional inner width limit. */
+  .page-about .page-main,
+  .page-contact .page-main{
+    max-width:none;
+    width:100%;
+  }
+}
+/* END_FIXTECH_V651_WIDE_PUBLIC_PAGES */
