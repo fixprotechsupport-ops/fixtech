@@ -4520,3 +4520,14 @@ main li,
   font-family:var(--panic-intro-diagnosis-font,var(--font-family))!important;
   font-size:var(--panic-intro-diagnosis-size,14px)!important;
 }
+
+
+/* FIXTECH v6.49 — table and image content inside Panic learning sections */
+.page-panic .panic-story-copy-v636 .panic-table-wrap-v649{width:100%;max-width:100%;overflow-x:auto;margin:12px 0}
+.page-panic .panic-story-copy-v636 .panic-content-table-v649{width:100%;border-collapse:collapse;background:#fff;font-size:inherit}
+.page-panic .panic-story-copy-v636 .panic-content-table-v649 th,
+.page-panic .panic-story-copy-v636 .panic-content-table-v649 td{border:1px solid #cfd9e6;padding:10px 12px;text-align:left;vertical-align:top;color:#000}
+.page-panic .panic-story-copy-v636 .panic-content-table-v649 th{background:#f4f7fb;font-weight:800;color:#13223c}
+.page-panic .panic-story-copy-v636 .panic-content-image-v649{margin:14px 0;max-width:100%}
+.page-panic .panic-story-copy-v636 .panic-content-image-v649 img{display:block;max-width:100%;height:auto;border-radius:10px}
+.page-panic .panic-story-copy-v636 .panic-content-image-v649 figcaption{margin-top:7px;color:#000;font-size:.9em;line-height:1.45}
