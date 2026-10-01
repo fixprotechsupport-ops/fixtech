@@ -36,11 +36,14 @@
     else if(st.align==='left')o.push('margin-left:0','margin-right:auto');
     return o.length?` style="${o.join(';')}"`:'';
   }
+  function childWidthV635(c){const n=+c?.widthPct||100;return[25,33,50,66,75,100].includes(n)?n:100}
   function customChildMarkup(c){
     if(!c?.kind)return'';
-    if(c.kind==='text')return `<div class="ft-custom-child ft-custom-text" data-ft-child="${attr(c.id)}"><p>${esc(c.text||'')}</p></div>`;
-    if(c.kind==='button')return `<div class="ft-custom-child ft-custom-button" data-ft-child="${attr(c.id)}"><button class="primary" data-route="${attr(c.route||'home')}">${esc(c.text||'Button')}</button></div>`;
-    if(c.kind==='image')return c.image?`<div class="ft-custom-child ft-custom-image" data-ft-child="${attr(c.id)}"><img src="${attr(c.image)}" alt="${attr(c.alt||'Image')}"${imageStyleV602(c.imageStyle)}></div>`:'';
+    const w=childWidthV635(c),layout=` style="--ft-child-width:${w}%"`;
+    if(c.kind==='block')return `<article class="ft-custom-child ft-content-block" data-ft-child="${attr(c.id)}"${layout}><h3>${esc(c.title||'Block Title')}</h3><p>${esc(c.text||'')}</p></article>`;
+    if(c.kind==='text')return `<div class="ft-custom-child ft-custom-text" data-ft-child="${attr(c.id)}"${layout}><p>${esc(c.text||'')}</p></div>`;
+    if(c.kind==='button')return `<div class="ft-custom-child ft-custom-button" data-ft-child="${attr(c.id)}"${layout}><button class="primary" data-route="${attr(c.route||'home')}">${esc(c.text||'Button')}</button></div>`;
+    if(c.kind==='image')return c.image?`<div class="ft-custom-child ft-custom-image" data-ft-child="${attr(c.id)}"${layout}><img src="${attr(c.image)}" alt="${attr(c.alt||'Image')}"${imageStyleV602(c.imageStyle)}></div>`:'';
     return'';
   }
   function childSequence(s,parts){return ensureSectionChildren(s).map(c=>c.kind?customChildMarkup(c):(parts[c.id]?parts[c.id](c):'')).join('')}
@@ -294,6 +297,7 @@
   };
   const route=()=>IS_LOCAL_PREVIEW?(location.hash.replace('#/','')||'home'):routeFromPath();
   const go=id=>{
+    if(id==='panic')sessionStorage.setItem('panic.view','intro');
     if(IS_LOCAL_PREVIEW){location.hash='#/'+id;return}
     const slug=PUBLIC_ROUTE_SLUGS[id]??'';
     const target=publicBasePath()+(slug?slug+'/':'');
@@ -433,109 +437,34 @@
   }
 
 
-// FIXTECH_PANIC_CATALOG_PUBLIC_V592
-  function getPanicCatalog(){
-    let raw=load('fixtech.panicCatalog',[]);
-    const out=[];
-    const addSeries=name=>{
-      name=String(name||'').trim();
-      if(!name)return null;
-      let s=out.find(x=>x.name.toLowerCase()===name.toLowerCase());
-      if(!s){s={name,models:[]};out.push(s)}
-      return s;
-    };
-    const addModel=(s,name)=>{
-      name=String(name||'').trim();
-      if(!s||!name)return;
-      if(!s.models.some(x=>x.toLowerCase()===name.toLowerCase()))s.models.push(name);
-    };
-
-    if(Array.isArray(raw)){
-      raw.forEach(item=>{
-        if(typeof item==='string'){addSeries(item);return}
-        if(!item||typeof item!=='object')return;
-        const s=addSeries(item.name||item.series);
-        (item.models||[]).forEach(m=>addModel(s,typeof m==='string'?m:(m?.name||m?.model)));
-      });
-    }
-
-    state.panicEntries.forEach(e=>{
-      const s=addSeries(e.series);
-      addModel(s,e.model);
-    });
-
-    return out;
+// FIXTECH_PANIC_MODEL_GUIDE_V635
+  function panicGuideSeedPublicV635(seriesName,modelName){
+    const list=(state.panicEntries||[]).filter(e=>e.series===seriesName&&e.model===modelName);
+    const src=list.find(e=>e.rich&&Object.values(e.rich).some(Boolean))||list[0]||null,rich=src?.rich||{};
+    const listHtml=(items,tag='ul')=>`<${tag}>${(items||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</${tag}>`;
+    return{problemSymptoms:[rich.problem||((src?.problem)?`<p>${esc(src.problem)}</p>`:''),rich.symptoms||((src?.symptoms||[]).length?listHtml(src.symptoms):'')].filter(Boolean).join(''),causes:rich.diagnosis||((src?.diagnosis||[]).length?listHtml(src.diagnosis):''),check:rich.panicFull||((src?.panicFull)?`<p>${esc(src.panicFull)}</p>`:''),solutions:rich.solution||((src?.solution||[]).length?listHtml(src.solution):''),visible:true};
   }
-// FIXTECH_PANIC_CATALOG_PUBLIC_V595
   function panicCatalogPublic(){
     let raw=[];
-    if(IS_LOCAL_PREVIEW){
-      try{const saved=localStorage.getItem('fixtech.panicCatalog');if(saved!==null)raw=JSON.parse(saved)||[]}catch{raw=[]}
-      if((!Array.isArray(raw)||!raw.length)&&PUBLISHED_STATE&&Array.isArray(PUBLISHED_STATE.panicCatalog))raw=deep(PUBLISHED_STATE.panicCatalog);
-    }else if(PUBLISHED_STATE&&Array.isArray(PUBLISHED_STATE.panicCatalog))raw=deep(PUBLISHED_STATE.panicCatalog);
+    if(IS_LOCAL_PREVIEW){try{const saved=localStorage.getItem('fixtech.panicCatalog');if(saved!==null)raw=JSON.parse(saved)||[]}catch{raw=[]}if((!Array.isArray(raw)||!raw.length)&&PUBLISHED_STATE&&Array.isArray(PUBLISHED_STATE.panicCatalog))raw=deep(PUBLISHED_STATE.panicCatalog)}
+    else if(PUBLISHED_STATE&&Array.isArray(PUBLISHED_STATE.panicCatalog))raw=deep(PUBLISHED_STATE.panicCatalog);
     else try{raw=JSON.parse(localStorage.getItem('fixtech.panicCatalog')||'[]')}catch{raw=[]}
-
     const out=[];
-    const addSeries=name=>{
-      name=String(name||'').trim();
-      if(!name)return null;
-      let s=out.find(x=>x.name.toLowerCase()===name.toLowerCase());
-      if(!s){
-        s={name,models:[]};
-        out.push(s);
-      }
-      return s;
-    };
-    const addModel=(s,name)=>{
-      name=String(name||'').trim();
-      if(!s||!name)return;
-      if(!s.models.some(x=>x.toLowerCase()===name.toLowerCase()))s.models.push(name);
-    };
-
-    if(Array.isArray(raw)){
-      raw.forEach(item=>{
-        if(typeof item==='string'){
-          addSeries(item);
-          return;
-        }
-        if(!item||typeof item!=='object')return;
-        const s=addSeries(item.name||item.series);
-        (item.models||[]).forEach(m=>{
-          if(typeof m==='string')addModel(s,m);
-          else if(m&&typeof m==='object')addModel(s,m.name||m.model);
-        });
-      });
-    }
-
-    state.panicEntries.forEach(e=>{
-      const s=addSeries(e.series);
-      addModel(s,e.model);
-    });
-
+    const addSeries=(name,id)=>{name=String(name||'').trim();if(!name)return null;let s=out.find(x=>x.name.toLowerCase()===name.toLowerCase());if(!s){s={id:id||'',name,models:[]};out.push(s)}return s};
+    const addModel=(s,name,id,guide)=>{name=String(name||'').trim();if(!s||!name)return null;let m=s.models.find(x=>x.name.toLowerCase()===name.toLowerCase());if(!m){m={id:id||'',name};s.models.push(m)}if(guide&&typeof guide==='object')m.guide=deep(guide);return m};
+    if(Array.isArray(raw))raw.forEach(item=>{if(typeof item==='string'){addSeries(item);return}if(!item||typeof item!=='object')return;const s=addSeries(item.name||item.series,item.id);(item.models||[]).forEach(m=>{if(typeof m==='string')addModel(s,m);else if(m&&typeof m==='object')addModel(s,m.name||m.model,m.id,m.guide)})});
+    state.panicEntries.forEach(e=>{const s=addSeries(e.series);addModel(s,e.model)});
+    out.forEach(s=>s.models.forEach(m=>{if(!m.guide)m.guide=panicGuideSeedPublicV635(s.name,m.name);else m.guide={problemSymptoms:'',causes:'',check:'',solutions:'',visible:true,...m.guide}}));
     return out;
   }
-function getPanicSelection(){
-    const all=state.panicEntries.filter(x=>x.visible!==false);
-    const catalog=panicCatalogPublic();
-    const series=catalog.map(x=>x.name);
-
-    let selectedSeries=sessionStorage.getItem('panic.series')||series[0]||'';
-    if(!series.includes(selectedSeries))selectedSeries=series[0]||'';
-
-    const selectedSeriesData=catalog.find(x=>x.name===selectedSeries);
-    const models=(selectedSeriesData?.models||[]).slice();
-
-    let selectedModel=sessionStorage.getItem('panic.model')||models[0]||'';
-    if(!models.includes(selectedModel))selectedModel=models[0]||'';
-
-    const query=sessionStorage.getItem('panic.query')||'';
-    const rows=all.filter(x=>
-      x.series===selectedSeries &&
-      x.model===selectedModel &&
-      (`${x.code} ${x.problem}`).toLowerCase().includes(query.toLowerCase())
-    );
-
-    return{series,selectedSeries,models,selectedModel,query,rows};
+  function getPanicSelection(){
+    const all=state.panicEntries.filter(x=>x.visible!==false),catalog=panicCatalogPublic(),series=catalog.map(x=>x.name);
+    let selectedSeries=sessionStorage.getItem('panic.series')||series[0]||'';if(!series.includes(selectedSeries))selectedSeries=series[0]||'';
+    const selectedSeriesData=catalog.find(x=>x.name===selectedSeries),modelRows=selectedSeriesData?.models||[],models=modelRows.map(x=>x.name);
+    let selectedModel=sessionStorage.getItem('panic.model')||models[0]||'';if(!models.includes(selectedModel))selectedModel=models[0]||'';
+    const selectedModelData=modelRows.find(x=>x.name===selectedModel)||null,query=sessionStorage.getItem('panic.query')||'';
+    const rows=all.filter(x=>x.series===selectedSeries&&x.model===selectedModel&&(`${x.code} ${x.problem}`).toLowerCase().includes(query.toLowerCase()));
+    return{series,selectedSeries,models,selectedModel,selectedModelData,guide:selectedModelData?.guide||panicGuideSeedPublicV635(selectedSeries,selectedModel),query,rows};
   }
 // FIXTECH_PANIC_RICH_PUBLIC_V596
   function panicPublicRichV596(html){
@@ -553,22 +482,127 @@ function getPanicSelection(){
     return t.innerHTML;
   }
 
-  function detailMarkup(r){
-    const st=r.style||{},fs=(v,min=8,max=48)=>v&&+v>=min&&+v<=max?` style="font-size:${+v}px"`:'';
-    const rich=r.rich||{};
-    const problem=rich.problem?`<div class="panic-rich-public">${panicPublicRichV596(rich.problem)}</div>`:`<p${fs(st.problemSize)}>${esc(r.problem)}. This code points to this area or a closely related circuit.</p>`;
-    const symptoms=rich.symptoms?`<div class="panic-rich-public">${panicPublicRichV596(rich.symptoms)}</div>`:`<ul>${(r.symptoms||[]).map(x=>`<li${fs(st.symptomsSize)}>${esc(x)}</li>`).join('')}</ul>`;
-    const panicFull=rich.panicFull?`<div class="panic-rich-public">${panicPublicRichV596(rich.panicFull)}</div>`:`<p${fs(st.panicFullSize)}>${esc(r.panicFull)}</p>`;
-    const diagnosis=rich.diagnosis?`<div class="panic-rich-public">${panicPublicRichV596(rich.diagnosis)}</div>`:`<ol>${(r.diagnosis||[]).map(x=>`<li${fs(st.diagnosisSize)}>${esc(x)}</li>`).join('')}</ol>`;
-    const solution=rich.solution?`<div class="panic-rich-public">${panicPublicRichV596(rich.solution)}</div>`:`<ol>${(r.solution||[]).map(x=>`<li${fs(st.solutionSize)}>${esc(x)}</li>`).join('')}</ol>`;
-    return `<div class="detail-grid">
-      <div class="detail-box"><b><i>1</i> Problem</b>${problem}</div>
-      <div class="detail-box"><b><i>2</i> Symptoms</b>${symptoms}</div>
-      <div class="detail-box wide"><b><i>3</i> What to Find in Panic Full</b>${panicFull}</div>
-      <div class="detail-box"><b><i>4</i> Diagnosis Steps</b>${diagnosis}</div>
-      <div class="detail-box"><b><i>5</i> Solution / Repair</b>${solution}</div>
+  function panicGuideSectionV635(num,title,html,cls=''){
+    const body=html?`<div class="panic-rich-public">${panicPublicRichV596(html)}</div>`:'<p class="panic-guide-empty-copy">Information has not been added yet.</p>';
+    return `<section class="panic-guide-step ${cls}"><h3><i>${num}</i>${esc(title)}</h3>${body}</section>`;
+  }
+  function panicModelGuideMarkupV635(p){
+    const g=p.guide||{},rows=p.rows||[];
+    const table=`<div class="panic-model-code-table"><div class="panic-model-code-head"><span>Code</span><span>Related Part / Problem</span></div>${rows.map(r=>`<div class="panic-model-code-row"><strong>${esc(r.code)}</strong><span>${esc(r.problem||'')}</span></div>`).join('')||'<div class="empty">No matching error codes for this model.</div>'}</div>`;
+    return `<div class="panic-model-guide-v635">
+      ${panicGuideSectionV635(1,'Problem / Symptoms',g.problemSymptoms,'wide')}
+      ${panicGuideSectionV635(2,'Possible Causes',g.causes,'wide')}
+      ${panicGuideSectionV635(3,'How to Check Panic Log',g.check,'wide')}
+      <section class="panic-guide-step wide panic-guide-code-step"><h3><i>4</i>Common Error Codes</h3>${table}</section>
+      ${panicGuideSectionV635(5,'Solutions',g.solutions,'wide')}
     </div>`;
   }
+  // FIXTECH_PANIC_STORY_READING_V636
+  function panicStoryItemMarkupV636(s){
+    const body=childSequence(s,{
+      title:()=>s.title?`<h2 data-ft-child="title">${esc(s.title)}</h2>`:'',
+      description:()=>{
+        const rich=s.richText?panicPublicRichV596(s.richText):`<p>${esc(s.text||'')}</p>`;
+        return `<div class="panic-story-copy-v636" data-ft-child="description">${rich}</div>`;
+      }
+    });
+    return `<article class="panic-story-item-v636 editable-section"${sectionData(s)}${sectionStyle(s)}>${body}</article>`;
+  }
+  function panicStoryMarkupV636(items){
+    if(!items.length)return'';
+    return `<section class="panic-story-reading-v636" aria-label="Panic Log introduction">${items.map(panicStoryItemMarkupV636).join('')}</section>`;
+  }
+
+  // FIXTECH_PANIC_TWO_STEP_V638
+  // FIXTECH_PANIC_INTRO_EDITABLE_V640
+  const PANIC_INTRO_DEFAULTS_V640={
+    kicker:'Understand first · Diagnose second',
+    title:'យល់ពី Panic Log មុនពេលចាប់ផ្តើម Diagnosis',
+    summary:'Panic Log ជួយប្រាប់ថា iPhone កំពុងជួបបញ្ហាអ្វី និងគួរចាប់ផ្តើមពិនិត្យពីផ្នែកណា។ ការយល់មូលដ្ឋានជាមុនអាចជួយកាត់បន្ថយការស្មាន និងការប្តូរគ្រឿងដែលមិនចាំបាច់។',
+    buttonText:'Go to Panic Log →',
+    step1Title:'ស្គាល់រោគសញ្ញា',step1Text:'មើលថា iPhone restart ពេលណា និងកើតឡើងញឹកញាប់ប៉ុណ្ណា។',
+    step2Title:'រក panic-full.ips',step2Text:'ប្រើ Panic Log ពិត ដើម្បីអាន code និង sensor information។',
+    step3Title:'ផ្គូផ្គង Model ឲ្យត្រឹមត្រូវ',step3Text:'Code អាចខុសគ្នាតាម Series និង Model ដូច្នេះត្រូវជ្រើសឲ្យត្រឹមត្រូវ។',
+    noteLabel:'ចំណាំ:',noteText:'Panic code ជា diagnostic clue សម្រាប់ចាប់ផ្តើមពិនិត្យ។ វាមិនមានន័យថា part មួយនោះខូច 100% ដោយស្វ័យប្រវត្តិទេ។',
+    learningLabel:'Learn before diagnosis',learningTitle:'ព័ត៌មានសំខាន់ដែលគួរយល់ជាមុន',learningText:'អានផ្នែកខាងក្រោមដើម្បីយល់ពី Panic Log ឲ្យច្បាស់ មុនពេលចូលទៅកាន់ការរកកូដ និង Diagnosis។',
+    bottomTitle:'រួចរាល់ដើម្បីពិនិត្យ Panic Log?',bottomText:'បន្ទាប់មកជ្រើស iPhone Series និង Model ដើម្បីមើល Problem, Cause, Error Code និង Solution។',
+    backButtonText:'← Introduction',diagnosisHint:'Choose the exact iPhone model, then follow steps 1–5.'
+  };
+  function panicIntroConfigV640(){return {...PANIC_INTRO_DEFAULTS_V640,...(state.site?.panicIntro||{})}}
+
+  // FIXTECH_PANIC_INTRO_TYPOGRAPHY_V642
+  const PANIC_INTRO_STYLE_DEFAULTS_V642={
+    labelFont:'default',labelSize:13,titleFont:'default',titleSize:34,summaryFont:'default',summarySize:17,
+    stepTitleFont:'default',stepTitleSize:15,stepTextFont:'default',stepTextSize:14,noteFont:'default',noteSize:14.5,
+    learningTitleFont:'default',learningTitleSize:22,learningTextFont:'default',learningTextSize:15,
+    bottomTitleFont:'default',bottomTitleSize:18,bottomTextFont:'default',bottomTextSize:14.5,
+    buttonFont:'default',buttonSize:15,diagnosisFont:'default',diagnosisSize:14
+  };
+  function panicIntroStyleConfigV642(){return {...PANIC_INTRO_STYLE_DEFAULTS_V642,...(state.site?.panicIntroStyle||{})}}
+  function panicIntroFontStackV642(v){
+    return ({default:'var(--font-family)',khmer:'"Khmer OS Battambang","Battambang","Noto Sans Khmer",sans-serif',segoe:'"Segoe UI",Arial,sans-serif',arial:'Arial,sans-serif',georgia:'Georgia,serif'})[v]||'var(--font-family)';
+  }
+  function panicIntroSizeV642(v,d){const n=Number(v);return Number.isFinite(n)?Math.max(10,Math.min(64,n)):d}
+  function panicIntroStyleVarsV642(){
+    const t=panicIntroStyleConfigV642();
+    const vars={
+      '--panic-intro-label-font':panicIntroFontStackV642(t.labelFont),'--panic-intro-label-size':`${panicIntroSizeV642(t.labelSize,13)}px`,
+      '--panic-intro-title-font':panicIntroFontStackV642(t.titleFont),'--panic-intro-title-size':`${panicIntroSizeV642(t.titleSize,34)}px`,
+      '--panic-intro-summary-font':panicIntroFontStackV642(t.summaryFont),'--panic-intro-summary-size':`${panicIntroSizeV642(t.summarySize,17)}px`,
+      '--panic-intro-step-title-font':panicIntroFontStackV642(t.stepTitleFont),'--panic-intro-step-title-size':`${panicIntroSizeV642(t.stepTitleSize,15)}px`,
+      '--panic-intro-step-text-font':panicIntroFontStackV642(t.stepTextFont),'--panic-intro-step-text-size':`${panicIntroSizeV642(t.stepTextSize,14)}px`,
+      '--panic-intro-note-font':panicIntroFontStackV642(t.noteFont),'--panic-intro-note-size':`${panicIntroSizeV642(t.noteSize,14.5)}px`,
+      '--panic-intro-learning-title-font':panicIntroFontStackV642(t.learningTitleFont),'--panic-intro-learning-title-size':`${panicIntroSizeV642(t.learningTitleSize,22)}px`,
+      '--panic-intro-learning-text-font':panicIntroFontStackV642(t.learningTextFont),'--panic-intro-learning-text-size':`${panicIntroSizeV642(t.learningTextSize,15)}px`,
+      '--panic-intro-bottom-title-font':panicIntroFontStackV642(t.bottomTitleFont),'--panic-intro-bottom-title-size':`${panicIntroSizeV642(t.bottomTitleSize,18)}px`,
+      '--panic-intro-bottom-text-font':panicIntroFontStackV642(t.bottomTextFont),'--panic-intro-bottom-text-size':`${panicIntroSizeV642(t.bottomTextSize,14.5)}px`,
+      '--panic-intro-button-font':panicIntroFontStackV642(t.buttonFont),'--panic-intro-button-size':`${panicIntroSizeV642(t.buttonSize,15)}px`,
+      '--panic-intro-diagnosis-font':panicIntroFontStackV642(t.diagnosisFont),'--panic-intro-diagnosis-size':`${panicIntroSizeV642(t.diagnosisSize,14)}px`
+    };
+    return Object.entries(vars).map(([k,v])=>`${k}:${v}`).join(';');
+  }
+  // FIXTECH_PANIC_INTRO_SHARED_TOOLBAR_V643
+  function panicIntroElementStyleV643(key){return state.site?.panicIntroElementStyles?.[key]||null}
+  function panicIntroElementStyleAttrV643(key){
+    const s=panicIntroElementStyleV643(key);if(!s)return'';
+    const p=[];
+    if(s.font)p.push(`font-family:${panicIntroFontStackV642(s.font)}!important`);
+    if(Number.isFinite(Number(s.size)))p.push(`font-size:${Math.max(10,Math.min(72,Number(s.size)))}px!important`);
+    if(Object.prototype.hasOwnProperty.call(s,'bold'))p.push(`font-weight:${s.bold?'800':'400'}!important`);
+    if(Object.prototype.hasOwnProperty.call(s,'italic'))p.push(`font-style:${s.italic?'italic':'normal'}!important`);
+    if(Object.prototype.hasOwnProperty.call(s,'underline'))p.push(`text-decoration:${s.underline?'underline':'none'}!important`);
+    if(/^#[0-9a-f]{6}$/i.test(s.color||''))p.push(`color:${s.color}!important`);
+    if(/^#[0-9a-f]{6}$/i.test(s.background||''))p.push(`background:${s.background}!important`);
+    if(['left','center','right'].includes(s.align))p.push(`text-align:${s.align}!important`);
+    return p.length?` style="${attr(p.join(';'))}"`:'';
+  }
+  function panicIntroLeadV638(){
+    const c=panicIntroConfigV640();
+    return `<section class="panic-intro-lead-v638 panic-intro-lead-v639" aria-label="Why Panic Log is important">
+      <div class="panic-intro-top-v639">
+        <div class="panic-intro-copy-v639">
+          <span class="panic-intro-kicker-v638"${panicIntroElementStyleAttrV643('kicker')}>${esc(c.kicker)}</span>
+          <h2${panicIntroElementStyleAttrV643('title')}>${esc(c.title)}</h2>
+          <p class="panic-intro-summary-v638"${panicIntroElementStyleAttrV643('summary')}>${esc(c.summary)}</p>
+        </div>
+        <button class="primary big panic-intro-top-button-v639" id="panicStartTopV639"${panicIntroElementStyleAttrV643('buttonText')}>${esc(c.buttonText)}</button>
+      </div>
+      <div class="panic-intro-path-v639" aria-label="Three things to understand first">
+        <div><span class="panic-path-number-v639">1</span><span><strong${panicIntroElementStyleAttrV643('step1Title')}>${esc(c.step1Title)}</strong><small${panicIntroElementStyleAttrV643('step1Text')}>${esc(c.step1Text)}</small></span></div>
+        <div><span class="panic-path-number-v639">2</span><span><strong${panicIntroElementStyleAttrV643('step2Title')}>${esc(c.step2Title)}</strong><small${panicIntroElementStyleAttrV643('step2Text')}>${esc(c.step2Text)}</small></span></div>
+        <div><span class="panic-path-number-v639">3</span><span><strong${panicIntroElementStyleAttrV643('step3Title')}>${esc(c.step3Title)}</strong><small${panicIntroElementStyleAttrV643('step3Text')}>${esc(c.step3Text)}</small></span></div>
+      </div>
+      <p class="panic-intro-note-v638"><strong${panicIntroElementStyleAttrV643('noteLabel')}>${esc(c.noteLabel)}</strong> <span${panicIntroElementStyleAttrV643('noteText')}>${esc(c.noteText)}</span></p>
+    </section>`;
+  }
+  function panicIntroCtaV638(){
+    const c=panicIntroConfigV640();
+    return `<section class="panic-intro-cta-v638">
+      <div><h3${panicIntroElementStyleAttrV643('bottomTitle')}>${esc(c.bottomTitle)}</h3><p${panicIntroElementStyleAttrV643('bottomText')}>${esc(c.bottomText)}</p></div>
+      <button class="primary big" id="panicStartV638"${panicIntroElementStyleAttrV643('buttonText')}>${esc(c.buttonText)}</button>
+    </section>`;
+  }
+
   function renderPanic(){
     const p=getPanicSelection();
     const renderer=s=>{
@@ -585,17 +619,50 @@ function getPanicSelection(){
       if(s.type==='panicResults'){
         const children=ensureSectionChildren(s),idx=id=>children.findIndex(x=>!x.kind&&x.id===id),customs=children.map((c,i)=>c.kind?{i,html:customChildMarkup(c)}:null).filter(Boolean);
         const headIds=['title','description','count'].filter(id=>idx(id)>=0),headIndex=headIds.length?Math.min(...headIds.map(idx)):999;
-        const copyIds=headIds.filter(id=>id!=='count').sort((a,b)=>idx(a)-idx(b)),copyHtml=copyIds.length?`<div class="ft-child-column">${copyIds.map(id=>id==='title'?`<h2 data-ft-child="title">${esc(p.selectedModel||'Panic Codes')} Panic Codes</h2>`:`<p data-ft-child="description">${esc(s.text||'')}</p>`).join('')}</div>`:'',countHtml=idx('count')>=0?`<span class="count-pill" data-ft-child="count">${p.rows.length} codes</span>`:'';
-        const countFirst=countHtml&&(!copyIds.length||idx('count')<Math.min(...copyIds.map(idx)));
-        const head=headIds.length?`<div class="section-title-row">${countFirst?countHtml:''}${copyHtml}${!countFirst?countHtml:''}</div>`:'';
-        const resultsIndex=idx('results');
-        const results=resultsIndex>=0?`<div class="panic-table" data-ft-child="results"><div class="panic-head"><span>Code</span><span>Possible Problem</span><span>Show Information</span></div>${p.rows.map(r=>`<div class="panic-row-wrap"><button class="panic-row ${state.openPanic===r.id?'selected':''}" data-panic-open="${attr(r.id)}"><strong${r.style?.codeSize?` style="font-size:${+r.style.codeSize}px"`:''}>${esc(r.code)}</strong><span${r.style?.problemSize?` style="font-size:${+r.style.problemSize}px"`:''}>${esc(r.problem)}</span><span class="show-info">${state.openPanic===r.id?'Hide ▲':'Show ▼'}</span></button>${state.openPanic===r.id?detailMarkup(r):''}</div>`).join('')||'<div class="empty">No panic codes found.</div>'}</div>`:'';
+        const titleHtml=idx('title')>=0?`<h2 data-ft-child="title">${esc(p.selectedModel||'Panic Log')} Guide</h2>`:'',descHtml=idx('description')>=0&&s.text?`<p data-ft-child="description">${esc(s.text)}</p>`:'',countHtml=idx('count')>=0?`<span class="count-pill" data-ft-child="count">${p.rows.length} codes</span>`:'';
+        const head=headIds.length?`<div class="section-title-row"><div class="ft-child-column">${titleHtml}${descHtml}</div>${countHtml}</div>`:'';
+        const resultsIndex=idx('results'),results=resultsIndex>=0?`<div data-ft-child="results">${panicModelGuideMarkupV635(p)}</div>`:'';
         const blocks=[head?{i:headIndex,html:head}:null,results?{i:resultsIndex,html:results}:null,...customs].filter(Boolean).sort((a,b)=>a.i-b.i).map(x=>x.html).join('');
-        return card(blocks,'',s)
+        return card(blocks,'panic-model-guide-card',s)
       }
       return plain(s)
     };
-    app.innerHTML=layout('panic',renderer);
+    // Two-step Panic Log flow: introduction first, diagnosis second.
+    // In Admin preview, automatically show the step that contains the selected section.
+    const top=byZone('panic','top').map(renderer).join('');
+    const left=byZone('panic','left').map(renderer).join('');
+    const right=byZone('panic','right').map(renderer).join('');
+    const bottom=byZone('panic','bottom').map(renderer).join('');
+    const mainSections=byZone('panic','main');
+    const filters=mainSections.filter(s=>s.type==='panicFilters').map(renderer).join('');
+    const storySections=mainSections.filter(s=>s.type==='text');
+    const story=panicStoryMarkupV636(storySections);
+    const results=mainSections.filter(s=>s.type==='panicResults').map(renderer).join('');
+    const other=mainSections.filter(s=>!['panicFilters','panicResults','text'].includes(s.type)).map(renderer).join('');
+
+    let panicView=sessionStorage.getItem('panic.view')==='diagnosis'?'diagnosis':'intro';
+    const locateId=new URLSearchParams(location.search).get('locate');
+    if(locateId){
+      const locateSection=(state.pages?.panic?.sections||[]).find(s=>s.id===locateId);
+      if(locateSection?.type==='panicFilters'||locateSection?.type==='panicResults')panicView='diagnosis';
+      else if(locateSection?.type==='text')panicView='intro';
+    }
+
+    const introConfigV640=panicIntroConfigV640();
+    const introMain=`${panicIntroLeadV638()}<div class="panic-intro-learning-head-v639"><span${panicIntroElementStyleAttrV643('learningLabel')}>${esc(introConfigV640.learningLabel)}</span><h3${panicIntroElementStyleAttrV643('learningTitle')}>${esc(introConfigV640.learningTitle)}</h3><p${panicIntroElementStyleAttrV643('learningText')}>${esc(introConfigV640.learningText)}</p></div>${story}${other}${panicIntroCtaV638()}`;
+    const diagnosisTop=`<div class="panic-diagnosis-toolbar-v638"><button class="ghost" id="panicBackV638"${panicIntroElementStyleAttrV643('backButtonText')}>${esc(introConfigV640.backButtonText)}</button><span${panicIntroElementStyleAttrV643('diagnosisHint')}>${esc(introConfigV640.diagnosisHint)}</span></div>`;
+    const diagnosisMain=`${diagnosisTop}${filters}${results}`;
+    const main=panicView==='diagnosis'?diagnosisMain:introMain;
+    const cols=[left&&'has-left',right&&'has-right'].filter(Boolean).join(' ');
+    app.innerHTML=`<div class="page page-panic" data-panic-view="${panicView}" style="${attr(panicIntroStyleVarsV642())}"><div class="page-zone page-zone-top">${top}</div><div class="page-body-layout ${cols}">${left?`<aside class="page-side page-left">${left}</aside>`:''}<main class="page-main">${main}</main>${right?`<aside class="page-side page-right">${right}</aside>`:''}</div><div class="page-zone page-zone-bottom">${bottom}</div></div>`;
+
+    const openPanicDiagnosisV639=()=>{sessionStorage.setItem('panic.view','diagnosis');render();window.scrollTo({top:0,left:0,behavior:'auto'})};
+    const startButton=document.getElementById('panicStartV638');
+    if(startButton)startButton.onclick=openPanicDiagnosisV639;
+    const startTopButton=document.getElementById('panicStartTopV639');
+    if(startTopButton)startTopButton.onclick=openPanicDiagnosisV639;
+    const backButton=document.getElementById('panicBackV638');
+    if(backButton)backButton.onclick=()=>{sessionStorage.setItem('panic.view','intro');render();window.scrollTo({top:0,left:0,behavior:'auto'})};
     const series=document.getElementById('panicSeries');if(series)series.onchange=e=>{sessionStorage.setItem('panic.series',e.target.value);sessionStorage.removeItem('panic.model');state.openPanic=null;render()};
     const model=document.getElementById('panicModel');if(model)model.onchange=e=>{sessionStorage.setItem('panic.model',e.target.value);state.openPanic=null;render()};
     const search=document.getElementById('panicSearch');if(search)search.onclick=()=>{sessionStorage.setItem('panic.query',document.getElementById('panicQuery').value);render()};
