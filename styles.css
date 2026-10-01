@@ -4716,38 +4716,3 @@ main li,
   }
 }
 /* END FIXTECH v6.50 — mobile responsive dynamic content + table borders */
-
-/* FIXTECH_V654_STABLE_VIEWPORT_PROPORTION
-   Keep the public desktop layout at the same visual proportion on every
-   desktop monitor. Q&A intentionally keeps its existing page width. */
-@media (min-width:1001px){
-  :root{
-    --ft-public-page-width:89vw;
-    --ft-public-side-space:5.5vw;
-  }
-
-  body .page:not(.page-qa){
-    width:var(--ft-public-page-width)!important;
-    max-width:none!important;
-    margin-left:auto!important;
-    margin-right:auto!important;
-  }
-
-  /* About and Contact have an older inner width cap. */
-  body .page-about .page-main,
-  body .page-contact .page-main{
-    width:100%!important;
-    max-width:100%!important;
-  }
-
-  /* Keep the header/footer aligned with the same visual page edges. */
-  body .topbar{
-    padding-left:var(--ft-public-side-space)!important;
-    padding-right:var(--ft-public-side-space)!important;
-  }
-  body footer{
-    padding-left:var(--ft-public-side-space)!important;
-    padding-right:var(--ft-public-side-space)!important;
-  }
-}
-/* END_FIXTECH_V654_STABLE_VIEWPORT_PROPORTION */
